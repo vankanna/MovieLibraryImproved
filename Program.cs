@@ -70,7 +70,8 @@ namespace MovieLibrary
                         Console.WriteLine(m.Display());
                     }
                 } else if (choice == "3") {
-
+                    Console.WriteLine("Please Enter Search Criteria.");
+                    movieFile.FindMovies(Console.ReadLine());
                 }
             } while (choice == "1" || choice == "2");
 

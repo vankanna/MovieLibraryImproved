@@ -102,7 +102,7 @@ namespace MovieLibrary
             }
         }
 
-        public  void FindMovie(String searchCriteria) {
+        public  void FindMovies(String searchCriteria) {
             var moviesFound = this.Movies.Where(m => m.title.Contains(searchCriteria));
             Console.WriteLine(moviesFound.Count() + " Matches Found");
             foreach(Movie m in moviesFound)
