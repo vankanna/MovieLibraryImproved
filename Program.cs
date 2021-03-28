@@ -1,9 +1,9 @@
-﻿using System;
+﻿ using System;
 using NLog.Web;
 using System.IO;
-using System.Linq;
+using System.Collections.Generic;
 
-namespace MediaLibrary
+namespace MovieLibrary
 {
     class Program
     {
@@ -11,48 +11,68 @@ namespace MediaLibrary
         private static NLog.Logger logger = NLogBuilder.ConfigureNLog(Directory.GetCurrentDirectory() + "\\nlog.config").GetCurrentClassLogger();
         static void Main(string[] args)
         {
+            string movieFilePath = Directory.GetCurrentDirectory() + "\\movies.csv";
 
             logger.Info("Program started");
 
-            string scrubbedFile = FileScrubber.ScrubMovies("movies.csv");
-            MovieFile movieFile = new MovieFile(scrubbedFile);
+            MovieFile movieFile = new MovieFile(movieFilePath);
 
-            Console.ForegroundColor = ConsoleColor.Green;
-
-            // LINQ - Where filter operator & Contains quantifier operator
-            var Movies = movieFile.Movies.Where(m => m.title.Contains("(1990)"));
-            // LINQ - Count aggregation method
-            Console.WriteLine($"There are {Movies.Count()} movies from 1990");
-
-            // LINQ - Any quantifier operator & Contains quantifier operator
-            var validate = movieFile.Movies.Any(m => m.title.Contains("(1921)"));
-            Console.WriteLine($"Any movies from 1921? {validate}");
-
-            // LINQ - Where filter operator & Contains quantifier operator & Count aggregation method
-            int num = movieFile.Movies.Where(m => m.title.Contains("(1921)")).Count();
-            Console.WriteLine($"There are {num} movies from 1921");
-
-            // LINQ - Where filter operator & Contains quantifier operator
-            var Movies1921 = movieFile.Movies.Where(m => m.title.Contains("(1921)"));
-            foreach(Movie m in Movies1921)
+            string choice = "";
+            do
             {
-                Console.WriteLine($"  {m.title}");
-            }
+                // display choices to user
+                Console.WriteLine("1) Add Movie");
+                Console.WriteLine("2) Display All Movies");
+                Console.WriteLine("3) Find Movie");
+                Console.WriteLine("Enter to quit");
+                // input selection
+                choice = Console.ReadLine();
+                logger.Info("User choice: {Choice}", choice);
 
-            // LINQ - Where filter operator & Select projection operator & Contains quantifier operator
-            var titles = movieFile.Movies.Where(m => m.title.Contains("Shark")).Select(m => m.title);
-            // LINQ - Count aggregation method
-            Console.WriteLine($"There are {titles.Count()} movies with \"Shark\" in the title:");
-            foreach(string t in titles)
-            {
-                Console.WriteLine($"  {t}");
-            }
+                if (choice == "1")
+                {
+                    // Add movie
+                    Movie movie = new Movie();
+                    // ask user to input movie title
+                    Console.WriteLine("Enter movie title");
+                    // input title
+                    movie.title = Console.ReadLine();
+                    // verify title is unique
+                    if (movieFile.isUniqueTitle(movie.title)){
+                        // input genres
+                        string input;
+                        do
+                        {
+                            // ask user to enter genre
+                            Console.WriteLine("Enter genre (or done to quit)");
+                            // input genre
+                            input = Console.ReadLine();
+                            // if user enters "done"
+                            // or does not enter a genre do not add it to list
+                            if (input != "done" && input.Length > 0)
+                            {
+                                movie.genres.Add(input);
+                            }
+                        } while (input != "done");
+                        // specify if no genres are entered
+                        if (movie.genres.Count == 0)
+                        {
+                            movie.genres.Add("(no genres listed)");
+                        }
+                        // add movie
+                        movieFile.AddMovie(movie);
+                    }
+                } else if (choice == "2")
+                {
+                    // Display All Movies
+                    foreach(Movie m in movieFile.Movies)
+                    {
+                        Console.WriteLine(m.Display());
+                    }
+                } else if (choice == "3") {
 
-            // LINQ - First element operator
-            var FirstMovie = movieFile.Movies.First(m => m.title.StartsWith("Z", StringComparison.OrdinalIgnoreCase));
-            Console.WriteLine($"First movie that starts with letter 'Z': {FirstMovie.title}");
-
-            Console.ForegroundColor = ConsoleColor.White;
+                }
+            } while (choice == "1" || choice == "2");
 
             logger.Info("Program ended");
         }

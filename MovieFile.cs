@@ -1,10 +1,10 @@
-using NLog.Web;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NLog.Web;
 
-namespace MediaLibrary
+namespace MovieLibrary
 {
     public class MovieFile
     {
@@ -24,6 +24,8 @@ namespace MediaLibrary
             try
             {
                 StreamReader sr = new StreamReader(filePath);
+                // first line contains column headers
+                sr.ReadLine();
                 while (!sr.EndOfStream)
                 {
                     // create instance of Movie class
@@ -37,33 +39,25 @@ namespace MediaLibrary
                         // no quote = no comma in movie title
                         // movie details are separated with comma(,)
                         string[] movieDetails = line.Split(',');
-                        movie.mediaId = UInt64.Parse(movieDetails[0]);
+                        movie.movieId = UInt64.Parse(movieDetails[0]);
                         movie.title = movieDetails[1];
                         movie.genres = movieDetails[2].Split('|').ToList();
-                        movie.director = movieDetails[3];
-                        movie.runningTime = TimeSpan.Parse(movieDetails[4]);
                     }
                     else
                     {
-                        // quote = comma or quotes in movie title
+                        // quote = comma in movie title
                         // extract the movieId
-                        movie.mediaId = UInt64.Parse(line.Substring(0, idx - 1));
-                        // remove movieId and first comma from string
-                        line = line.Substring(idx);
-                        // find the last quote
-                        idx = line.LastIndexOf('"');
-                        // extract title
-                        movie.title = line.Substring(0, idx + 1);
-                        // remove title and next comma from the string
+                        movie.movieId = UInt64.Parse(line.Substring(0, idx - 1));
+                        // remove movieId and first quote from string
+                        line = line.Substring(idx + 1);
+                        // find the next quote
+                        idx = line.IndexOf('"');
+                        // extract the movieTitle
+                        movie.title = line.Substring(0, idx);
+                        // remove title and last comma from the string
                         line = line.Substring(idx + 2);
-                        // split the remaining string based on commas
-                        string[] details = line.Split(',');
-                        // the first item in the array should be genres 
-                        movie.genres = details[0].Split('|').ToList();
-                        // if there is another item in the array it should be director
-                        movie.director = details[1];
-                        // if there is another item in the array it should be run time
-                        movie.runningTime = TimeSpan.Parse(details[2]);
+                        // replace the "|" with ", "
+                        movie.genres = line.Split('|').ToList();
                     }
                     Movies.Add(movie);
                 }
@@ -93,19 +87,16 @@ namespace MediaLibrary
             try
             {
                 // first generate movie id
-                movie.mediaId = Movies.Max(m => m.mediaId) + 1;
-                // if title contains a comma, wrap it in quotes
-                string title = movie.title.IndexOf(',') != -1 || movie.title.IndexOf('"') != -1 ? $"\"{movie.title}\"" : movie.title;
+                movie.movieId = Movies.Max(m => m.movieId) + 1;
                 StreamWriter sw = new StreamWriter(filePath, true);
-                // write movie data to file
-                sw.WriteLine($"{movie.mediaId},{title},{string.Join("|", movie.genres)},{movie.director},{movie.runningTime}");
+                sw.WriteLine($"{movie.movieId},{movie.title},{string.Join("|", movie.genres)}");
                 sw.Close();
-                // add movie details to List
+                // add movie details to Lists
                 Movies.Add(movie);
                 // log transaction
-                logger.Info("Media id {Id} added", movie.mediaId);
-            }
-            catch (Exception ex)
+                logger.Info("Movie id {Id} added", movie.movieId);
+            } 
+            catch(Exception ex)
             {
                 logger.Error(ex.Message);
             }
