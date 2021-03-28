@@ -101,5 +101,14 @@ namespace MovieLibrary
                 logger.Error(ex.Message);
             }
         }
+
+        public  void FindMovie(String searchCriteria) {
+            var moviesFound = this.Movies.Where(m => m.title.Contains(searchCriteria));
+            Console.WriteLine(moviesFound.Count() + " Matches Found");
+            foreach(Movie m in moviesFound)
+            {
+                Console.WriteLine($" - {m.title}");
+            }
+        }
     }
 }
