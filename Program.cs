@@ -73,7 +73,7 @@ namespace MovieLibrary
                     Console.WriteLine("Please Enter Search Criteria.");
                     movieFile.FindMovies(Console.ReadLine());
                 }
-            } while (choice == "1" || choice == "2");
+            } while (choice == "1" || choice == "2" || choice == "3");
 
             logger.Info("Program ended");
         }
